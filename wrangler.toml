@@ -1,8 +1,12 @@
-name = "usage-panel"
+name = "cf-workers-usagepanel"
 main = "_worker.js"
 compatibility_date = "2026-01-10"
 keep_vars = true
 
-#[[kv_namespaces]]
-#binding = "KV"			#KV绑定名默认不可修改
-#id = ""				#KV数据库id
+[[kv_namespaces]]
+binding = "KV"
+id = "f969f843264a4fccb257836b3494a0b0"
+
+routes = [
+  { pattern = "cf-workers-usagepanel.209.dpdns.org", custom_domain = true }
+]

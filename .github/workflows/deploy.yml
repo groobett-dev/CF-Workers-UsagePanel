@@ -1,0 +1,52 @@
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Cloudflare
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configure wrangler.toml
+        run: |
+          cat << 'EOF' > wrangler.toml
+          name = "cf-workers-usagepanel"
+          main = "_worker.js"
+          compatibility_date = "2026-01-10"
+          keep_vars = true
+
+          routes = [
+            { pattern = "cf-workers-usagepanel.209.dpdns.org", custom_domain = true }
+          ]
+
+          [[kv_namespaces]]
+          binding = "KV"
+          id = "${{ secrets.KV_ID }}"
+
+          [vars]
+          ADMIN = "${{ secrets.ADMIN }}"
+          USERNAME = "${{ secrets.USERNAME }}"
+
+          [triggers]
+          crons = ["*/30 * * * *"]
+          EOF
+
+      - name: Deploy Worker via Wrangler
+        run: |
+          npx wrangler deploy --minify
+        env:
+          CLOUDFLARE_API_KEY: ${{ secrets.CLOUDFLARE_GLOBAL_KEY }}
+          CLOUDFLARE_EMAIL: ${{ secrets.CLOUDFLARE_EMAIL }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
